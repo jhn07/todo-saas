@@ -38,7 +38,7 @@ export async function createSubscriptionPlan(userId: string) {
 
   const subscriptionUrl = await getStripeSession({
     customerId: dataUser.stripeCustomerId,
-    domainUrl: `http://localhost:3000`,
+    domainUrl: `https://todo-saas.vercel.app`,
     priceId: process.env.STRIPE_PRICE_ID!
   })
 
@@ -49,7 +49,7 @@ export async function createSubscriptionPlan(userId: string) {
 export async function createCustomerPortal(customerId: string) {
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
-    return_url: "http://localhost:3000/dashboard"
+    return_url: "https://todo-saas.vercel.app/dashboard"
   })
 
   return redirect(session.url)
