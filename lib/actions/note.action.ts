@@ -29,26 +29,23 @@ export async function getAllNotes(userId: string) {
 
 export async function createNote(userId: string, formData: FormData) {
 
-  try {
-    if (!userId) throw new Error("Not authorized")
+  if (!userId) throw new Error("Not authorized")
 
-    const { title, description } = Object.fromEntries(
-      formData.entries()
-    ) as { title: string, description: string }
+  const { title, description } = Object.fromEntries(
+    formData.entries()
+  ) as { title: string, description: string }
 
-    await prisma.note.create({
-      data: {
-        userId: userId,
-        title: title,
-        description: description
-      }
-    })
+  const note = await prisma.note.create({
+    data: {
+      userId: userId,
+      title: title,
+      description: description
+    }
+  })
 
-    revalidatePath("/dashboard")
-    return redirect("/dashboard")
-  } catch (error) {
-    handleError(error)
-  }
+  console.log(`Note created ${note.id}`)
+  revalidatePath("/dashboard")
+  return redirect("/dashboard")
 }
 
 export async function getNoteById({ userId, noteId }: { userId: string, noteId: string }) {
@@ -65,28 +62,22 @@ export async function getNoteById({ userId, noteId }: { userId: string, noteId: 
 
 }
 
-export async function updateNote(userId: string, noteId: string, formData: FormData) {
+export async function updateNote(noteId: string, userId: string, formData: FormData) {
 
-  try {
-    if (!userId) throw new Error("Not authorized")
+  if (!userId) return
 
-    const { title, description } = Object.fromEntries(
-      formData.entries()
-    ) as { title: string, description: string }
+  const { title, description } = Object.fromEntries(
+    formData.entries()
+  ) as { title: string, description: string }
 
-    await prisma.note.update({
-      where: { id: noteId, userId: userId },
-      data: {
-        title: title,
-        description: description
-      }
-    })
+  const note = await prisma.note.update({
+    where: { id: noteId, userId: userId },
+    data: { title: title, description: description }
+  })
 
-    revalidatePath("/dashboard")
-    return redirect("/dashboard")
-  } catch (error) {
-    handleError(error)
-  }
+  console.log(`Updated note ${note.id}`)
+  revalidatePath("/dashboard")
+  return redirect("/dashboard")
 }
 
 export async function deleteNote(formData: FormData) {
@@ -99,7 +90,7 @@ export async function deleteNote(formData: FormData) {
 
     if (!delNote) throw new Error("Note note found")
 
-    console.log(`Note ${delNote.id} Deleted`)
+    console.log(`Note Deleted ${delNote.id}`)
     revalidatePath("/dashboard")
   } catch (error) {
     handleError(error)

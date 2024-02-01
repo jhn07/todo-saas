@@ -23,7 +23,7 @@ export default async function NoteId({ params }: { params: { id: string } }) {
 
 
   const data = await getNoteById({ userId: userId, noteId: params.id })
-  const updatedNote = updateNote.bind(null, userId, params.id)
+  const updatedNote = updateNote.bind(null, params.id, userId)
 
   return (
     <Card>
