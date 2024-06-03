@@ -2,7 +2,6 @@
 
 import prisma from "@/lib/db"
 
-import { handleError } from "../utils";
 import { revalidatePath } from "next/cache";
 import { getStripeSession } from "../stripe";
 import { redirect } from "next/navigation";
@@ -10,21 +9,17 @@ import { stripe } from "@/lib/stripe"
 
 
 export async function getUserSubscriptionPlan(userId: string) {
-  try {
-    const data = await prisma.subscription.findUnique({
-      where: { userId: userId },
-      select: {
-        status: true,
-        user: { select: { stripeCustomerId: true } }
-      }
-    })
+  const data = await prisma.subscription.findUnique({
+    where: { userId: userId },
+    select: {
+      status: true,
+      user: { select: { stripeCustomerId: true } }
+    }
+  })
 
 
-    revalidatePath("dashboard/billing")
-    return data
-  } catch (error) {
-    handleError(error)
-  }
+  revalidatePath("dashboard/billing")
+  return data
 }
 
 export async function createSubscriptionPlan(userId: string) {

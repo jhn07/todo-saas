@@ -3,28 +3,25 @@
 import prisma from "@/lib/db"
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { handleError } from "../utils";
+
 
 export async function getAllNotes(userId: string) {
   if (!userId) return
 
-  try {
-    const data = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        Notes: true,
-        Subscription: {
-          select: {
-            status: true
-          }
+  const data = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      Notes: true,
+      Subscription: {
+        select: {
+          status: true
         }
       }
-    })
+    }
+  })
 
-    return data
-  } catch (error) {
-    handleError(error)
-  }
+  return data
+
 }
 
 export async function createNote(userId: string, formData: FormData) {
@@ -49,16 +46,12 @@ export async function createNote(userId: string, formData: FormData) {
 }
 
 export async function getNoteById({ userId, noteId }: { userId: string, noteId: string }) {
-  try {
-    const data = await prisma.note.findUnique({
-      where: { userId: userId, id: noteId, },
-      select: { title: true, description: true, id: true }
-    })
+  const data = await prisma.note.findUnique({
+    where: { userId: userId, id: noteId, },
+    select: { title: true, description: true, id: true }
+  })
 
-    return data
-  } catch (error) {
-    handleError(error)
-  }
+  return data
 
 }
 
@@ -81,18 +74,14 @@ export async function updateNote(noteId: string, userId: string, formData: FormD
 }
 
 export async function deleteNote(formData: FormData) {
-  try {
-    const noteId = formData.get("noteid") as string
+  const noteId = formData.get("noteid") as string
 
-    const delNote = await prisma.note.delete({
-      where: { id: noteId }
-    })
+  const delNote = await prisma.note.delete({
+    where: { id: noteId }
+  })
 
-    if (!delNote) throw new Error("Note note found")
+  if (!delNote) throw new Error("Note note found")
 
-    console.log(`Note Deleted ${delNote.id}`)
-    revalidatePath("/dashboard")
-  } catch (error) {
-    handleError(error)
-  }
+  console.log(`Note Deleted ${delNote.id}`)
+  revalidatePath("/dashboard")
 } 

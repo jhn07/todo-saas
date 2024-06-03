@@ -1,7 +1,6 @@
 "use server";
 
 import prisma from "@/lib/db"
-import { handleError } from "../utils";
 import { revalidatePath } from "next/cache";
 import { stripe } from "@/lib/stripe"
 
@@ -13,108 +12,88 @@ type CreateUserParams = {
 
 export async function createNewuser(user: CreateUserParams) {
 
-  try {
-    const findUser = await prisma.user.findUnique({
-      where: { email: user.email },
-      select: { stripeCustomerId: true }
+  const findUser = await prisma.user.findUnique({
+    where: { email: user.email },
+    select: { stripeCustomerId: true }
+  })
+
+  if (!findUser) {
+
+    const data = await stripe.customers.create({
+      email: user.email
     })
 
-    if (!findUser) {
+    const newUser = await prisma.user.create({
+      data: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        stripeCustomerId: data.id
+      }
+    })
 
-      const data = await stripe.customers.create({
-        email: user.email
-      })
-
-      const newUser = await prisma.user.create({
-        data: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          stripeCustomerId: data.id
-        }
-      })
-
-      console.log(`User Created ${newUser.name}`)
-      console.log(`User CustomerId ${newUser.stripeCustomerId}`)
-      return newUser
-    }
-
-
-    return findUser
-  } catch (error) {
-    handleError(error)
+    console.log(`User Created ${newUser.name}`)
+    console.log(`User CustomerId ${newUser.stripeCustomerId}`)
+    return newUser
   }
+
+
+  return findUser
 }
 
 export async function updatedUser(userId: string, user: { name: string, email: string }) {
-  try {
-    const findUser = await prisma.user.findUnique({
-      where: { id: userId }
-    })
+  const findUser = await prisma.user.findUnique({
+    where: { id: userId }
+  })
 
-    if (!findUser) throw new Error("User not found")
+  if (!findUser) throw new Error("User not found")
 
-    const updateUser = await prisma.user.update({
-      where: { id: findUser.id },
-      data: {
-        name: user.name,
-        email: user.email
-      }
-    })
-    return updateUser
-  } catch (error) {
-    handleError(error)
-  }
+  const updateUser = await prisma.user.update({
+    where: { id: findUser.id },
+    data: {
+      name: user.name,
+      email: user.email
+    }
+  })
+  return updateUser
 }
 
 export async function deletedUser(userId: string) {
 
-  try {
-    const findUser = await prisma.user.findUnique({
-      where: { id: userId }
-    })
+  const findUser = await prisma.user.findUnique({
+    where: { id: userId }
+  })
 
-    if (!findUser) throw new Error("User not found")
+  if (!findUser) throw new Error("User not found")
 
-    const deleteUser = await prisma.user.delete({
-      where: { id: findUser.id }
-    })
+  const deleteUser = await prisma.user.delete({
+    where: { id: findUser.id }
+  })
 
-    return deleteUser
-  } catch (error) {
-    handleError(error)
-  }
+  return deleteUser
 }
 
 export async function getUserData(userId: string) {
-  try {
-    const data = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { name: true, email: true, colorScheme: true }
-    })
+  const data = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { name: true, email: true, colorScheme: true }
+  })
 
-    revalidatePath("/dashboard/settings")
-    return data
-  } catch (error) {
-    handleError(error)
-  }
+  revalidatePath("/dashboard/settings")
+  return data
 }
 
 export async function updateUserData(userId: string, formData: FormData) {
-  try {
 
-    const name = formData.get("name") as string
-    const colorScheme = formData.get("color") as string
+  const name = formData.get("name") as string
+  const colorScheme = formData.get("color") as string
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: { name: name, colorScheme: colorScheme }
-    })
+  await prisma.user.update({
+    where: { id: userId },
+    data: { name: name, colorScheme: colorScheme }
+  })
 
-    revalidatePath("/dashboard/settings")
-  } catch (error) {
-    handleError(error)
-  }
+  revalidatePath("/dashboard/settings")
 }
 
 export async function getUserTheme(userId: string) {
