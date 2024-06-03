@@ -3,7 +3,7 @@ import { headers } from 'next/headers'
 import { WebhookEvent } from '@clerk/nextjs/server'
 import { NextResponse } from 'next/server'
 import { clerkClient } from '@clerk/nextjs'
-import { createNewuser, deletedUser, updatedUser } from '@/lib/actions/user.action'
+import { createNewUser, deletedUser, updatedUser } from '@/lib/actions/user.action'
 
 export async function POST(req: Request) {
 
@@ -63,12 +63,12 @@ export async function POST(req: Request) {
       email: email_addresses[0].email_address
     }
 
-    const newUser = await createNewuser(user)
+    const newUser = await createNewUser(user)
 
     if (newUser) {
       await clerkClient.users.updateUserMetadata(id, {
         publicMetadata: {
-          userId: newUser.id
+          userId: newUser.id as string
         }
       })
     }

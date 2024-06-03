@@ -10,11 +10,11 @@ type CreateUserParams = {
   email: string
 }
 
-export async function createNewuser(user: CreateUserParams) {
+export async function createNewUser(user: CreateUserParams) {
 
   const findUser = await prisma.user.findUnique({
     where: { email: user.email },
-    select: { stripeCustomerId: true }
+    select: { id: true, stripeCustomerId: true }
   })
 
   if (!findUser) {
